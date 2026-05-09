@@ -513,7 +513,7 @@ public class Game extends JFrame {
 
     // ── Game Logic ───────────────────────────
 
-    void startGame() {
+    public void startGame() {
         currentRoom   = 0;
         totalAttempts = 0;
         roomAttempts  = 0;
@@ -630,7 +630,7 @@ public class Game extends JFrame {
         if (timerSystem.hasTimeExpired()) loseGame();
     }
 
-    void winGame() {
+    public void winGame() {
         gameWon = true;
         swingTimer.stop();
         showEndScreen(true);
