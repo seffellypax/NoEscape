@@ -1,7 +1,7 @@
 public interface IRoom {
-    String name();
+    String getName();
     boolean isLocked();
-    boolean enter();
+    boolean enter(Player player);
     void showPuzzle();
     void showClue();
     void showHint();
