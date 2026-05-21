@@ -1,37 +1,36 @@
-
 package noescape;
 
 /**
- * LIBRARY ROOM: Room 2 - locked until Classroom is solved.
+ * LibraryRoom
+ * Implements RoomBehavior directly.
  *
  * OOP:
- *   Encapsulation - private fields, public methods
- *   Abstraction   - implements RoomBehavior interface
+ *   Encapsulation - all fields are private
+ *   Abstraction   - implements RoomBehavior
  */
 public class LibraryRoom implements RoomBehavior {
 
-    // Private fields (Encapsulation)
-    private String name;
+    private String  name;
     private boolean locked;
-    private String puzzle;
-    private String answer;
-    private String clue;
-    private String hint;
-    private String lastMessage = "";
-    private boolean solved = false;
-    private int attempts = 0;
+    private String  puzzle;
+    private String  answer;
+    private String  clue;
+    private String  hint;
+    private String  lastMessage = "";
+    private boolean solved      = false;
+    private int     attempts    = 0;
 
-    // Constructor
-    public LibraryRoom(String name, boolean locked, String puzzle, String answer, String clue, String hint) {
-        this.name = name;
+    public LibraryRoom(String name, boolean locked,
+                        String puzzle, String answer,
+                        String clue,   String hint) {
+        this.name   = name;
         this.locked = locked;
         this.puzzle = puzzle;
         this.answer = answer;
-        this.clue = clue;
-        this.hint = hint;
+        this.clue   = clue;
+        this.hint   = hint;
     }
 
-    // RoomBehavior implementations
     @Override
     public String getName() {
         return name;
@@ -42,6 +41,7 @@ public class LibraryRoom implements RoomBehavior {
         return locked;
     }
 
+    @Override
     public void unlock() {
         this.locked = false;
     }
@@ -74,7 +74,7 @@ public class LibraryRoom implements RoomBehavior {
     @Override
     public void checkAnswer(String userAnswer) {
         if (userAnswer.trim().equalsIgnoreCase(answer)) {
-            solved = true;
+            solved      = true;
             lastMessage = "Correct! You cleared: " + name;
         } else {
             attempts++;
@@ -82,19 +82,9 @@ public class LibraryRoom implements RoomBehavior {
         }
     }
 
-    public String getRoomType() {
-        return "Library";
-    }
-    public boolean isSolved() {
-        return solved;
-    }
-    public int getAttempts() {
-        return attempts;
-    }
-    public String getLastMessage() {
-        return lastMessage;
-    }
-    public String getPuzzle() {
-        return puzzle;
-    }
+    @Override public String  getRoomType()    { return "Library";    }
+    @Override public boolean isSolved()       { return solved;      }
+    @Override public int     getAttempts()    { return attempts;    }
+    @Override public String  getLastMessage() { return lastMessage; }
+    @Override public String  getPuzzle()      { return puzzle;      }
 }

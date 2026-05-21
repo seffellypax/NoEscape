@@ -1,36 +1,36 @@
 package noescape;
 
 /**
- * TSG ROOM: Room 3 - Technology Support Group, locked until Library is solved.
+ * TsgRoom
+ * Implements RoomBehavior directly.
  *
  * OOP:
- *   Encapsulation - private fields, public methods
- *   Abstraction   - implements RoomBehavior interface
+ *   Encapsulation - all fields are private
+ *   Abstraction   - implements RoomBehavior
  */
 public class TsgRoom implements RoomBehavior {
 
-    // Private fields (Encapsulation)
-    private String name;
+    private String  name;
     private boolean locked;
-    private String puzzle;
-    private String answer;
-    private String clue;
-    private String hint;
-    private String lastMessage = "";
-    private boolean solved = false;
-    private int attempts = 0;
+    private String  puzzle;
+    private String  answer;
+    private String  clue;
+    private String  hint;
+    private String  lastMessage = "";
+    private boolean solved      = false;
+    private int     attempts    = 0;
 
-    // Constructor
-    public TsgRoom(String name, boolean locked, String puzzle, String answer, String clue, String hint) {
-        this.name = name;
+    public TsgRoom(String name, boolean locked,
+                        String puzzle, String answer,
+                        String clue,   String hint) {
+        this.name   = name;
         this.locked = locked;
         this.puzzle = puzzle;
         this.answer = answer;
-        this.clue = clue;
-        this.hint = hint;
+        this.clue   = clue;
+        this.hint   = hint;
     }
 
-    // RoomBehavior implementations
     @Override
     public String getName() {
         return name;
@@ -41,6 +41,7 @@ public class TsgRoom implements RoomBehavior {
         return locked;
     }
 
+    @Override
     public void unlock() {
         this.locked = false;
     }
@@ -73,7 +74,7 @@ public class TsgRoom implements RoomBehavior {
     @Override
     public void checkAnswer(String userAnswer) {
         if (userAnswer.trim().equalsIgnoreCase(answer)) {
-            solved = true;
+            solved      = true;
             lastMessage = "Correct! You cleared: " + name;
         } else {
             attempts++;
@@ -81,18 +82,9 @@ public class TsgRoom implements RoomBehavior {
         }
     }
 
-    public String getRoomType() {
-        return "TSG";
-    }
-    public boolean isSolved() {
-        return solved;
-    }
-    public int getAttempts() {
-        return attempts;
-    }
-    public String getLastMessage() {
-        return lastMessage; }
-    public String  getPuzzle() {
-        return puzzle;
-    }
+    @Override public String  getRoomType()    { return "TSG";    }
+    @Override public boolean isSolved()       { return solved;      }
+    @Override public int     getAttempts()    { return attempts;    }
+    @Override public String  getLastMessage() { return lastMessage; }
+    @Override public String  getPuzzle()      { return puzzle;      }
 }

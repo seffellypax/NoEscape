@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 package noescape;
 
 import javax.swing.*;
@@ -11,28 +10,28 @@ import java.awt.*;
  *
  * OOP:
  *   Encapsulation - private fields, public methods
- *   Polymorphism  - rooms[] stored as Room (abstract type)
- *   Abstraction   - IRoom interface defines room contract
+ *   Polymorphism  - rooms[] stored as RoomBehavior type
+ *   Abstraction   - RoomBehavior interface defines room contract
  *   Inheritance   - SplashPanel extends JPanel
  */
 public class Game {
 
-    private GameWindow window;
-    private GameDisplay display;
-    private Player player;
-    private RoomBehavior[] rooms;
-    private int currentRoomIndex;
-    private Administrator admin;
-    private TimerSystem timer;
-    private GameState state;
-    private EnvLoader env;
+    private GameWindow      window;
+    private GameDisplay     display;
+    private Player          player;
+    private RoomBehavior[]  rooms;
+    private int             currentRoomIndex;
+    private Controller      admin;
+    private TimerSystem     timer;
+    private GameState       state;
+    private EnvLoader       env;
 
     // Constructor
     public Game() {
-        env  = new EnvLoader(".env");
-        admin = new Administrator();
-        currentRoomIndex  = 0;
-        state = GameState.ENTER_NAME;
+        env              = new EnvLoader(".env");
+        admin            = new Controller();
+        currentRoomIndex = 0;
+        state            = GameState.ENTER_NAME;
 
         window  = new GameWindow();
         display = new GameDisplay(
@@ -51,6 +50,8 @@ public class Game {
         startGameLoop();
     }
 
+    // ── ENTER NAME ───────────────────────────────────────────────────────────
+
     private void showEnterName() {
         state = GameState.ENTER_NAME;
         display.showEnterName();
@@ -62,9 +63,10 @@ public class Game {
         window.getInputField().requestFocus();
     }
 
+    // ── CHOOSE COURSE ────────────────────────────────────────────────────────
+
     private void showChooseCourse() {
         state = GameState.CHOOSE_COURSE;
-        // Pass button callbacks so the course buttons are clickable
         display.showChooseCourse(
             player.getName(),
             e -> selectCourse("Computer Science"),
@@ -82,6 +84,8 @@ public class Game {
         showSplash();
     }
 
+    // ── SPLASH ───────────────────────────────────────────────────────────────
+
     private void showSplash() {
         state = GameState.SPLASH;
         SplashPanel.showSplashDialog(player.getName(), player.getCourse());
@@ -94,6 +98,8 @@ public class Game {
         window.getInputField().requestFocus();
     }
 
+    // ── GAME LOOP ─────────────────────────────────────────────────────────────
+
     private void startGameLoop() {
         javax.swing.Timer gameLoop = new javax.swing.Timer(1000, e -> onTick());
         gameLoop.start();
@@ -105,8 +111,10 @@ public class Game {
         if (timer.hasTimeExpired()) triggerLoop();
     }
 
+    // ── START GAME ───────────────────────────────────────────────────────────
+
     private void startGame() {
-        rooms = RoomFactory.createRooms(env, player.getCourse());
+        rooms = createRooms();
         int total = env.getInt("TIMER_SECONDS", 120) + player.getBonusSeconds();
         timer = new TimerSystem(total);
         state = GameState.PLAYING;
@@ -115,12 +123,53 @@ public class Game {
         loadRoom(0);
     }
 
+    // ── CREATE ROOMS from .env ────────────────────────────────────────────────
+
+    private RoomBehavior[] createRooms() {
+        String p = player.getCourse().contains("Nursing") ? "NR_" : "CS_";
+        return new RoomBehavior[]{
+            new Classroom(
+                env.get(p + "ROOM1_NAME",   "Classroom 101"), false,
+                env.get(p + "ROOM1_PUZZLE", "What is your field of study?"),
+                env.get(p + "ROOM1_ANSWER", "unknown"),
+                env.get(p + "ROOM1_CLUE",   "Think about your course."),
+                env.get(p + "ROOM1_HINT",   "Check your ID card.")
+            ),
+            new LibraryRoom(
+                env.get(p + "ROOM2_NAME",   "Library"), true,
+                env.get(p + "ROOM2_PUZZLE", "What do you find on every shelf here?"),
+                env.get(p + "ROOM2_ANSWER", "book"),
+                env.get(p + "ROOM2_CLUE",   "Look around you."),
+                env.get(p + "ROOM2_HINT",   "Starts with B.")
+            ),
+            new TsgRoom(
+                env.get(p + "ROOM3_NAME",   "TSG"), true,
+                env.get(p + "ROOM3_PUZZLE", "What does TSG help students with?"),
+                env.get(p + "ROOM3_ANSWER", "tech support"),
+                env.get(p + "ROOM3_CLUE",   "TSG = Technology Support Group."),
+                env.get(p + "ROOM3_HINT",   "Two words.")
+            ),
+            new SecurityOfficeRoom(
+                env.get(p + "ROOM4_NAME",   "Security Office"), true,
+                env.get(p + "ROOM4_PUZZLE", "What is the goal of every student?"),
+                env.get(p + "ROOM4_ANSWER", "graduate"),
+                env.get(p + "ROOM4_CLUE",   "The end of every student's journey."),
+                env.get(p + "ROOM4_HINT",   "Starts with G.")
+            )
+        };
+    }
+
+    // ── LOAD ROOM ────────────────────────────────────────────────────────────
+
     private void loadRoom(int index) {
         currentRoomIndex = index;
         RoomBehavior room = rooms[index];
-        display.showRoom(room, index, rooms.length, player, admin.getMessage(), rooms, index);
+        display.showRoom(room, index, rooms.length, player,
+                         admin.getMessage(), rooms, index);
         window.setInputEnabled(true);
     }
+
+    // ── PROCESS INPUT ────────────────────────────────────────────────────────
 
     private void processPlayerInput() {
         String input = window.getInputField().getText().trim();
@@ -128,11 +177,11 @@ public class Game {
         if (input.isEmpty()) return;
 
         switch (state) {
-            case ENTER_NAME -> handleEnterName(input);
+            case ENTER_NAME    -> handleEnterName(input);
             case CHOOSE_COURSE -> handleChooseCourse(input);
-            case SPLASH -> handleSplashInput(input);
-            case WIN, LOOP -> handleEndInput(input);
-            case PLAYING -> handlePlayingInput(input);
+            case SPLASH        -> handleSplashInput(input);
+            case WIN, LOOP     -> handleEndInput(input);
+            case PLAYING       -> handlePlayingInput(input);
         }
     }
 
@@ -142,19 +191,19 @@ public class Game {
     }
 
     private void handleChooseCourse(String input) {
-        if(input.equals("1")) selectCourse("Computer Science");
+        if      (input.equals("1")) selectCourse("Computer Science");
         else if (input.equals("2")) selectCourse("Nursing");
-        else display.showFeedback("Type  1  or  2  to choose your course.", GameWindow.COL_YELLOW);
+        else    display.showFeedback("Type  1  or  2  to choose your course.", GameWindow.COL_YELLOW);
     }
 
     private void handleSplashInput(String input) {
         if (input.equalsIgnoreCase("start")) startGame();
-        else display.showFeedback("Type  START  to begin.", GameWindow.COL_YELLOW);
+        else display.showFeedback("Click START to begin.", GameWindow.COL_YELLOW);
     }
 
     private void handleEndInput(String input) {
         if (input.equalsIgnoreCase("restart")) restartGame();
-        else display.showFeedback("Type  RESTART  to play again.", GameWindow.COL_YELLOW);
+        else display.showFeedback("Click the button to play again.", GameWindow.COL_YELLOW);
     }
 
     private void handlePlayingInput(String input) {
@@ -202,12 +251,13 @@ public class Game {
         if (allRoomsSolved()) {
             triggerWin();
         } else {
-            // Brief pause then load next room
             javax.swing.Timer t = new javax.swing.Timer(900, e -> loadRoom(currentRoomIndex + 1));
             t.setRepeats(false);
             t.start();
         }
     }
+
+    // ── CLUE / HINT ──────────────────────────────────────────────────────────
 
     private void onCluePressed() {
         if (state != GameState.PLAYING) return;
@@ -223,6 +273,8 @@ public class Game {
         display.showFeedback("💡  " + room.getLastMessage(), GameWindow.COL_YELLOW);
     }
 
+    // ── WIN ──────────────────────────────────────────────────────────────────
+
     private void triggerWin() {
         timer.stop();
         admin.overrideLoop();
@@ -233,6 +285,8 @@ public class Game {
         window.getSubmitButton().setEnabled(true);
         window.getInputField().setEnabled(true);
     }
+
+    // ── LOOP ─────────────────────────────────────────────────────────────────
 
     private void triggerLoop() {
         timer.stop();
@@ -245,6 +299,8 @@ public class Game {
         window.getInputField().setEnabled(true);
     }
 
+    // ── RESTART ──────────────────────────────────────────────────────────────
+
     private void restartGame() {
         admin.resetGame();
         currentRoomIndex = 0;
@@ -252,99 +308,10 @@ public class Game {
         showEnterName();
     }
 
+    // ── HELPER ───────────────────────────────────────────────────────────────
+
     private boolean allRoomsSolved() {
         for (RoomBehavior r : rooms) if (!r.isSolved()) return false;
         return true;
     }
 }
-=======
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-
-public class Game {
-
-    public static void main(String[] args) {
-        JFrame aFrame = new JFrame("NoEscape!!");
-        aFrame.setSize(600, 400);
-        aFrame.setVisible(true);
-    }   
-
-        private JFrame window;
-        private JTextArea displayArea;
-        private JTextField inputField;
-        private JButton submitButton;
-
-        private Room currentRoom;
-        private Player player;
-
-        public Game(Player player, Room room) {
-            this.player = player;
-            this.currentRoom = room;
-
-         // Set up the GUI
-            window = new JFrame("NoEscape!!");
-            window.setSize(600, 400);
-            window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            window.setLayout(new BorderLayout());
-
-            displayArea = new JTextArea();
-            displayArea.setEditable(false);
-            displayArea.setFont(new Font("Consolas", Font.PLAIN,14));
-            displayArea.setBackground(Color.BLACK);
-            displayArea.setForeground(Color.GREEN);
-            JScrollPane scrollPane = new JScrollPane(displayArea);
-            window.add(scrollPane, BorderLayout.CENTER);
-        
-          //bottom panel for user input
-            JPanel inputPanel = new JPanel();
-            inputPanel.setLayout(new BorderLayout());
-            inputField = new JTextField();
-            inputField.setFont(new Font("Arial", Font.PLAIN,14));
-            submitButton = new JButton("Submit");
-            inputPanel.add(inputField, BorderLayout.CENTER);
-            inputPanel.add(submitButton, BorderLayout.EAST);
-            window.add(inputPanel, BorderLayout.SOUTH);
-
-          //happens when the player submits an answer
-            ActionListener submitAction = new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    processPlayerInput();
-                }
-            };
-
-          // allow pressing Enter to submit
-            submitButton.addActionListener(submitAction);
-            inputField.addActionListener(submitAction); 
-
-            window.setVisible(true);
-            startGame();
-        } 
-
-        private void startGame() {
-          // we append text to our GUI area.
-            displayArea.append(player.getName() + " has entered " + currentRoom.getName() + "\n");
-            displayArea.append("============================\n");
-
-            displayArea.append("Puzzle: What is 2 + 2?\n\n");
-            displayArea.append("Type your answer below and press Submit:\n");
-        }
-
-        private void processPlayerInput() {
-            String answer = inputField.getText().trim();
-
-            if (answer.isEmpty()) {
-                return; // ignore empty input
-            }
-
-            if(answer.equals("4")){
-                displayArea.append("Correct! You have escaped the room!\n");
-                inputField.setEditable(false);
-                submitButton.setEnabled(false);
-            } else {
-                displayArea.append("Incorrect! Hint: It's the same as 2 * 2.\n");
-            }
-        }
-    }
->>>>>>> c3e02708c9d42df23cec62226de306e4e171b963

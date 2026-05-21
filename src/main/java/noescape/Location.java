@@ -1,9 +1,10 @@
 package noescape;
 
 /**
- * LOCATION: A campus area that contains a Room.
+ * Location
+ * Represents a physical campus area containing a room.
  *
- * OOP: Encapsulation - wraps a room with campus metadata.
+ * OOP: Encapsulation - wraps a room with building metadata.
  */
 public class Location {
 

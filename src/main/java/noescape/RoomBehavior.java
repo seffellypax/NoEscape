@@ -1,27 +1,29 @@
 package noescape;
 
 /**
- * ROOM BEHAVIOR: Interface that every room must implement.
- * Replaces the old IRoom interface and abstract Room class.
+ * RoomBehavior Interface
+ * Defines the contract every room must follow.
  *
  * OOP: Abstraction - defines WHAT a room does, not HOW.
  */
 public interface RoomBehavior {
-    String getName();
+
+    // Identity
+    String  getName();
     boolean isLocked();
-    void unlock();
+    void    unlock();
 
     // Actions
     boolean enter(Player player);
-    void showPuzzle();
-    void showClue();
-    void showHint();
-    void checkAnswer(String answer);
+    void    showPuzzle();
+    void    showClue();
+    void    showHint();
+    void    checkAnswer(String answer);
 
-    // State getters
+    // State
     boolean isSolved();
-    int getAttempts();
-    String getLastMessage();
-    String getPuzzle();
-    String getRoomType();
+    int     getAttempts();
+    String  getLastMessage();
+    String  getPuzzle();
+    String  getRoomType();
 }

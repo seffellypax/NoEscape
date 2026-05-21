@@ -5,10 +5,11 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
- * GAME DISPLAY: Delegates all screen rendering to GameWindow's panel methods.
- * Keeps Game.java clean — it calls display.showX(), this calls window.showXScreen().
+ * GameDisplay
+ * Delegates all screen rendering to GameWindow.
+ * Keeps Game.java clean — it calls display.showX(), not window directly.
  *
- * OOP: Encapsulation - Game never talks to GameWindow directly for screens.
+ * OOP: Encapsulation - Game never accesses GameWindow screens directly.
  */
 public class GameDisplay {
 
@@ -20,8 +21,7 @@ public class GameDisplay {
         this.window     = window;
     }
 
-    // ── Screen methods — each swaps the center card ───────────────────────────
-
+    // Screens
     public void showEnterName() {
         window.showEnterNameScreen();
     }
@@ -37,17 +37,10 @@ public class GameDisplay {
     }
 
     public void showRoom(RoomBehavior room, int index, int total,
-                         Player player, String adminMessage) {
-        // Room map rendered inside showRoomScreen — pass placeholder rooms array
-        window.showRoomScreen(room, index, total, player, adminMessage,
-                              new RoomBehavior[]{room}, 0);
-    }
-
-    // Full version used by Game (with rooms array for the map)
-    public void showRoom(RoomBehavior room, int index, int total,
                          Player player, String adminMessage,
                          RoomBehavior[] rooms, int currentIndex) {
-        window.showRoomScreen(room, index, total, player, adminMessage, rooms, currentIndex);
+        window.showRoomScreen(room, index, total, player,
+                              adminMessage, rooms, currentIndex);
     }
 
     public void showWin(Player player, int secondsLeft, String adminMessage) {
@@ -58,14 +51,12 @@ public class GameDisplay {
         window.showLoopScreen(player, adminMessage);
     }
 
-    // ── Feedback (answer result, hints, clues) ────────────────────────────────
-
+    // Feedback (answer results, clues, hints)
     public void showFeedback(String msg, Color color) {
         window.showFeedback(msg, color);
     }
 
-    // ── Timer ─────────────────────────────────────────────────────────────────
-
+    // Timer label updates
     public void updateTimer(int secondsLeft) {
         Color color;
         if      (secondsLeft <= 10) color = GameWindow.COL_RED;
@@ -79,10 +70,4 @@ public class GameDisplay {
         timerLabel.setText(text);
         timerLabel.setForeground(color);
     }
-
-    // ── No-op stubs kept so Game.java compiles ────────────────────────────────
-    public void print(String t)  {}
-    public void clear()          {}
-    public void blank()          {}
-    public void showRoomMap(RoomBehavior[] rooms, int i) {}
 }

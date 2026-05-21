@@ -1,4 +1,6 @@
-public abstract class Room implements IRoom {
+package noescape;
+
+public abstract class Room implements RoomBehavior {
     private String name;
     private boolean locked;
 

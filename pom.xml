@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-<<<<<<< HEAD
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -33,25 +32,11 @@
             </plugin>
 
             <!-- Run with: mvn compile exec:java -->
-=======
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.noescape</groupId>
-    <artifactId>Noescape</artifactId>
-    <version>1.0</version>
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-    </properties>
-    <build>
-        <plugins>
->>>>>>> c3e02708c9d42df23cec62226de306e4e171b963
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-<<<<<<< HEAD
                     <mainClass>noescape.Main</mainClass>
                     <classpathScope>runtime</classpathScope>
                     <includeProjectDependencies>true</includeProjectDependencies>
@@ -80,11 +65,3 @@
         </plugins>
     </build>
 </project>
-=======
-                    <mainClass>noescape.Game</mainClass>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-</project>    
->>>>>>> c3e02708c9d42df23cec62226de306e4e171b963
