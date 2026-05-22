@@ -1,17 +1,18 @@
 noescape/GameWindow$1.class
-noescape/Controller.class
 noescape/LibraryRoom.class
+noescape/BaseRoom.class
 noescape/GameWindow$2.class
-noescape/EnvLoader.class
+noescape/EnvironmentLoader.class
 noescape/TimerSystem.class
+noescape/Escapable.class
 noescape/Game$1.class
 noescape/Player.class
 noescape/Main.class
 noescape/SplashPanel.class
 noescape/Location.class
 noescape/Classroom.class
-noescape/RoomBehavior.class
 noescape/GameWindow.class
+noescape/GameController.class
 noescape/GameState.class
 noescape/SecurityOfficeRoom.class
 noescape/Main$1.class
@@ -19,4 +20,3 @@ noescape/Game.class
 noescape/GameWindow$3.class
 noescape/GameDisplay.class
 noescape/TsgRoom.class
-noescape/Room.class

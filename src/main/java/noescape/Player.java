@@ -1,49 +1,48 @@
 package noescape;
 
 /**
- * Player
- * Represents the student trapped in the campus loop.
+ * Holds all mutable and immutable state for the current player session.
+ * Course selection determines bonus seconds and attempt limits at construction time.
  *
- * OOP: Encapsulation - all fields are private with getters and setters.
+ * OOP: Encapsulation — all fields are private; state is exposed through getters/setters only.
  */
 public class Player {
 
-    private String name;
-    private String course;
-    private int    progress;
-    private int    bonusSeconds;
-    private int    maxAttempts;
+    private final String name;
+    private final String course;
+    private int          solvedRoomCount;
+    private final int    bonusSeconds;
+    private final int    maxAttemptsPerRoom;
 
     public Player(String name, String course) {
-        this.name     = name;
-        this.course   = course;
-        this.progress = 0;
+        this.name            = name;
+        this.course          = course;
+        this.solvedRoomCount = 0;
 
-        // Assign bonuses based on course
         if (course.contains("Computer Science")) {
-            this.bonusSeconds = 20;
-            this.maxAttempts  = 3;
+            this.bonusSeconds       = 20;
+            this.maxAttemptsPerRoom = 3;
         } else if (course.contains("Nursing")) {
-            this.bonusSeconds = 0;
-            this.maxAttempts  = 5;
+            this.bonusSeconds       = 0;
+            this.maxAttemptsPerRoom = 5;
         } else {
-            this.bonusSeconds = 0;
-            this.maxAttempts  = 3;
+            this.bonusSeconds       = 0;
+            this.maxAttemptsPerRoom = 3;
         }
     }
 
-    // Getters
-    public String getName()         { return name;         }
-    public String getCourse()       { return course;       }
-    public int    getProgress()     { return progress;     }
-    public int    getBonusSeconds() { return bonusSeconds; }
-    public int    getMaxAttempts()  { return maxAttempts;  }
+    public String getName()           { return name; }
+    public String getCourse()         { return course; }
+    public int    getProgress()       { return solvedRoomCount; }
+    public int    getBonusSeconds()   { return bonusSeconds; }
+    public int    getMaxAttempts()    { return maxAttemptsPerRoom; }
 
-    // Setters
-    public void setProgress(int progress) { this.progress = progress; }
+    public void setProgress(int solvedRoomCount) {
+        this.solvedRoomCount = solvedRoomCount;
+    }
 
-    // Reset progress for restart
+    /** Resets session-level progress without changing the player's name or course. */
     public void reset() {
-        this.progress = 0;
+        this.solvedRoomCount = 0;
     }
 }

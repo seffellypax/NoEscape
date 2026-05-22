@@ -1,317 +1,354 @@
 package noescape;
 
-import javax.swing.*;
-import java.awt.*;
-
 /**
- * GAME: Coordinates all game logic and screen transitions.
+ * Core game controller that manages state transitions, player lifecycle,
+ * room progression, and the main game loop.
  *
- * Flow: ENTER_NAME → CHOOSE_COURSE → SPLASH → PLAYING → WIN or LOOP
- *
- * OOP:
- *   Encapsulation - private fields, public methods
- *   Polymorphism  - rooms[] stored as RoomBehavior type
- *   Abstraction   - RoomBehavior interface defines room contract
+ * OOP Principles Demonstrated:
+ *   Encapsulation - private fields exposed only through controlled methods
+ *   Polymorphism  - roomSequence[] stored as Escapable type
+ *   Abstraction   - Escapable interface defines the room contract
  *   Inheritance   - SplashPanel extends JPanel
  */
 public class Game {
 
-    private GameWindow      window;
-    private GameDisplay     display;
-    private Player          player;
-    private RoomBehavior[]  rooms;
-    private int             currentRoomIndex;
-    private Controller      admin;
-    private TimerSystem     timer;
-    private GameState       state;
-    private EnvLoader       env;
+    private GameWindow gameWindow;
+    private GameDisplay gameDisplay;
+    private Player currentPlayer;
+    private Escapable[] roomSequence;
+    private int activeRoomIndex;
+    private GameController gameController;
+    private TimerSystem countdownTimer;
+    private GameState currentState;
+    private EnvironmentLoader environmentLoader;
 
-    // Constructor
     public Game() {
-        env              = new EnvLoader(".env");
-        admin            = new Controller();
-        currentRoomIndex = 0;
-        state            = GameState.ENTER_NAME;
+        environmentLoader = new EnvironmentLoader(".env");
+        gameController    = new GameController();
+        activeRoomIndex   = 0;
+        currentState      = GameState.ENTER_NAME;
 
-        window  = new GameWindow();
-        display = new GameDisplay(
-            window.getDisplayArea(),
-            window.getTimerLabel(),
-            window
+        gameWindow  = new GameWindow();
+        gameDisplay = new GameDisplay(
+            gameWindow.getDisplayArea(),
+            gameWindow.getTimerLabel(),
+            gameWindow
         );
 
-        window.attachListeners(
-            e -> processPlayerInput(),
-            e -> onCluePressed(),
-            e -> onHintPressed()
+        gameWindow.attachListeners(
+            event -> processPlayerInput(),
+            event -> onClueButtonPressed(),
+            event -> onHintButtonPressed()
         );
 
-        showEnterName();
+        showNameEntryScreen();
         startGameLoop();
     }
 
-    // ── ENTER NAME ───────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Screen Transitions
+    // -------------------------------------------------------------------------
 
-    private void showEnterName() {
-        state = GameState.ENTER_NAME;
-        display.showEnterName();
-        display.setTimerText("", GameWindow.COL_DIM);
-        window.setInputEnabled(false);
-        window.getSubmitButton().setEnabled(true);
-        window.getInputField().setEnabled(true);
-        window.getInputField().setText("");
-        window.getInputField().requestFocus();
+    private void showNameEntryScreen() {
+        currentState = GameState.ENTER_NAME;
+        gameDisplay.showEnterName();
+        gameDisplay.setTimerText("", GameWindow.COLOR_DIMMED);
+        gameWindow.setInputEnabled(false);
+        gameWindow.setClueHintVisible(false);
+        gameWindow.getSubmitButton().setEnabled(true);
+        gameWindow.getInputField().setEnabled(true);
+        gameWindow.getInputField().setText("");
+        gameWindow.getInputField().requestFocus();
     }
 
-    // ── CHOOSE COURSE ────────────────────────────────────────────────────────
-
-    private void showChooseCourse() {
-        state = GameState.CHOOSE_COURSE;
-        display.showChooseCourse(
-            player.getName(),
-            e -> selectCourse("Computer Science"),
-            e -> selectCourse("Nursing")
+    private void showCourseSelectionScreen() {
+        currentState = GameState.CHOOSE_COURSE;
+        gameDisplay.showChooseCourse(
+            currentPlayer.getName(),
+            event -> selectCourse("Computer Science"),
+            event -> selectCourse("Nursing")
         );
-        window.setInputEnabled(false);
-        window.getSubmitButton().setEnabled(true);
-        window.getInputField().setEnabled(true);
-        window.getInputField().setText("");
-        window.getInputField().requestFocus();
+        gameWindow.setInputEnabled(false);
+        gameWindow.setClueHintVisible(false);
+        gameWindow.getSubmitButton().setEnabled(true);
+        gameWindow.getInputField().setEnabled(true);
+        gameWindow.getInputField().setText("");
+        gameWindow.getInputField().requestFocus();
     }
 
-    private void selectCourse(String course) {
-        player = new Player(player.getName(), course);
-        showSplash();
+    private void selectCourse(String selectedCourse) {
+        currentPlayer = new Player(currentPlayer.getName(), selectedCourse);
+        showSplashScreen();
     }
 
-    // ── SPLASH ───────────────────────────────────────────────────────────────
-
-    private void showSplash() {
-        state = GameState.SPLASH;
-        SplashPanel.showSplashDialog(player.getName(), player.getCourse());
-        display.showSplash(player);
-        display.setTimerText("", GameWindow.COL_DIM);
-        window.setInputEnabled(false);
-        window.getSubmitButton().setEnabled(true);
-        window.getInputField().setEnabled(true);
-        window.getInputField().setText("");
-        window.getInputField().requestFocus();
+    private void showSplashScreen() {
+        currentState = GameState.SPLASH;
+        SplashPanel.showSplashDialog(currentPlayer.getName(), currentPlayer.getCourse());
+        gameDisplay.showSplash(currentPlayer);
+        gameDisplay.setTimerText("", GameWindow.COLOR_DIMMED);
+        gameWindow.setInputEnabled(false);
+        gameWindow.setClueHintVisible(false);
+        gameWindow.getSubmitButton().setEnabled(true);
+        gameWindow.getInputField().setEnabled(true);
+        gameWindow.getInputField().setText("");
+        gameWindow.getInputField().requestFocus();
     }
 
-    // ── GAME LOOP ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Game Loop
+    // -------------------------------------------------------------------------
 
     private void startGameLoop() {
-        javax.swing.Timer gameLoop = new javax.swing.Timer(1000, e -> onTick());
+        javax.swing.Timer gameLoop = new javax.swing.Timer(1000, event -> onTick());
         gameLoop.start();
     }
 
     private void onTick() {
-        if (state != GameState.PLAYING) return;
-        display.updateTimer(timer.getSecondsRemaining());
-        if (timer.hasTimeExpired()) triggerLoop();
+        if (currentState != GameState.PLAYING) return;
+        gameDisplay.updateTimer(countdownTimer.getSecondsRemaining());
+        if (countdownTimer.hasTimeExpired()) triggerLoopFailed();
     }
 
-    // ── START GAME ───────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Game Initialization
+    // -------------------------------------------------------------------------
 
     private void startGame() {
-        rooms = createRooms();
-        int total = env.getInt("TIMER_SECONDS", 120) + player.getBonusSeconds();
-        timer = new TimerSystem(total);
-        state = GameState.PLAYING;
-        timer.start();
-        admin.sendMessage("The loop has begun. Find a way out, " + player.getName() + ".");
+        roomSequence = buildRoomSequence();
+        int totalSeconds = environmentLoader.getInt("TIMER_SECONDS", 120)
+                         + currentPlayer.getBonusSeconds();
+        countdownTimer = new TimerSystem(totalSeconds);
+        currentState   = GameState.PLAYING;
+        countdownTimer.start();
+        gameWindow.setClueHintVisible(true);
+        gameController.sendMessage("The loop has begun. Find a way out, " + currentPlayer.getName() + ".");
         loadRoom(0);
     }
 
-    // ── CREATE ROOMS from .env ────────────────────────────────────────────────
+    private Escapable[] buildRoomSequence() {
+        String coursePrefix = currentPlayer.getCourse().contains("Nursing") ? "NR_" : "CS_";
 
-    private RoomBehavior[] createRooms() {
-        String p = player.getCourse().contains("Nursing") ? "NR_" : "CS_";
-        return new RoomBehavior[]{
+        return new Escapable[]{
             new Classroom(
-                env.get(p + "ROOM1_NAME",   "Classroom 101"), false,
-                env.get(p + "ROOM1_PUZZLE", "What is your field of study?"),
-                env.get(p + "ROOM1_ANSWER", "unknown"),
-                env.get(p + "ROOM1_CLUE",   "Think about your course."),
-                env.get(p + "ROOM1_HINT",   "Check your ID card.")
+                environmentLoader.get(coursePrefix + "ROOM1_NAME",   "Classroom 101"),
+                false,
+                environmentLoader.get(coursePrefix + "ROOM1_PUZZLE", "What do nurses measure to check how fast the heart is beating?"),
+                environmentLoader.get(coursePrefix + "ROOM1_ANSWER", "pulse"),
+                environmentLoader.get(coursePrefix + "ROOM1_CLUE",   "You can feel it on the wrist or the neck."),
+                environmentLoader.get(coursePrefix + "ROOM1_HINT",   "It starts with the letter P.")
             ),
             new LibraryRoom(
-                env.get(p + "ROOM2_NAME",   "Library"), true,
-                env.get(p + "ROOM2_PUZZLE", "What do you find on every shelf here?"),
-                env.get(p + "ROOM2_ANSWER", "book"),
-                env.get(p + "ROOM2_CLUE",   "Look around you."),
-                env.get(p + "ROOM2_HINT",   "Starts with B.")
+                environmentLoader.get(coursePrefix + "ROOM2_NAME",   "Library"),
+                true,
+                environmentLoader.get(coursePrefix + "ROOM2_PUZZLE", "What is the normal human body temperature in Celsius?"),
+                environmentLoader.get(coursePrefix + "ROOM2_ANSWER", "37"),
+                environmentLoader.get(coursePrefix + "ROOM2_CLUE",   "It is the standard temperature a nurse checks with a thermometer."),
+                environmentLoader.get(coursePrefix + "ROOM2_HINT",   "It is a two-digit number between 36 and 38.")
             ),
             new TsgRoom(
-                env.get(p + "ROOM3_NAME",   "TSG"), true,
-                env.get(p + "ROOM3_PUZZLE", "What does TSG help students with?"),
-                env.get(p + "ROOM3_ANSWER", "tech support"),
-                env.get(p + "ROOM3_CLUE",   "TSG = Technology Support Group."),
-                env.get(p + "ROOM3_HINT",   "Two words.")
+                environmentLoader.get(coursePrefix + "ROOM3_NAME",   "TSG"),
+                true,
+                environmentLoader.get(coursePrefix + "ROOM3_PUZZLE", "What do nurses use to record and access patient medical information digitally?"),
+                environmentLoader.get(coursePrefix + "ROOM3_ANSWER", "EMR"),
+                environmentLoader.get(coursePrefix + "ROOM3_CLUE",   "TSG manages the hospital software system nurses use every day."),
+                environmentLoader.get(coursePrefix + "ROOM3_HINT",   "Three letters. Stands for Electronic Medical Records.")
             ),
             new SecurityOfficeRoom(
-                env.get(p + "ROOM4_NAME",   "Security Office"), true,
-                env.get(p + "ROOM4_PUZZLE", "What is the goal of every student?"),
-                env.get(p + "ROOM4_ANSWER", "graduate"),
-                env.get(p + "ROOM4_CLUE",   "The end of every student's journey."),
-                env.get(p + "ROOM4_HINT",   "Starts with G.")
+                environmentLoader.get(coursePrefix + "ROOM4_NAME",   "Security Office"),
+                true,
+                environmentLoader.get(coursePrefix + "ROOM4_PUZZLE", "What is the name of the oath nurses take, named after a famous nurse?"),
+                environmentLoader.get(coursePrefix + "ROOM4_ANSWER", "nightingale pledge"),
+                environmentLoader.get(coursePrefix + "ROOM4_CLUE",   "Named after the founder of modern nursing."),
+                environmentLoader.get(coursePrefix + "ROOM4_HINT",   "Two words. Think of Florence __________.")
             )
         };
     }
 
-    // ── LOAD ROOM ────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Room Navigation
+    // -------------------------------------------------------------------------
 
-    private void loadRoom(int index) {
-        currentRoomIndex = index;
-        RoomBehavior room = rooms[index];
-        display.showRoom(room, index, rooms.length, player,
-                         admin.getMessage(), rooms, index);
-        window.setInputEnabled(true);
+    private void loadRoom(int roomIndex) {
+        activeRoomIndex = roomIndex;
+        Escapable targetRoom = roomSequence[roomIndex];
+        gameDisplay.showRoom(
+            targetRoom,
+            roomIndex,
+            roomSequence.length,
+            currentPlayer,
+            gameController.getMessage(),
+            roomSequence,
+            roomIndex
+        );
+        gameWindow.setInputEnabled(true);
     }
 
-    // ── PROCESS INPUT ────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Input Handling
+    // -------------------------------------------------------------------------
 
     private void processPlayerInput() {
-        String input = window.getInputField().getText().trim();
-        window.getInputField().setText("");
-        if (input.isEmpty()) return;
+        String rawInput = gameWindow.getInputField().getText().trim();
+        gameWindow.getInputField().setText("");
+        if (rawInput.isEmpty()) return;
 
-        switch (state) {
-            case ENTER_NAME    -> handleEnterName(input);
-            case CHOOSE_COURSE -> handleChooseCourse(input);
-            case SPLASH        -> handleSplashInput(input);
-            case WIN, LOOP     -> handleEndInput(input);
-            case PLAYING       -> handlePlayingInput(input);
+        switch (currentState) {
+            case ENTER_NAME   -> handleNameEntry(rawInput);
+            case CHOOSE_COURSE -> handleCourseSelection(rawInput);
+            case SPLASH       -> handleSplashInput(rawInput);
+            case WIN, LOOP    -> handleEndScreenInput(rawInput);
+            case PLAYING      -> handleGameplayInput(rawInput);
         }
     }
 
-    private void handleEnterName(String input) {
-        player = new Player(input, "Computer Science");
-        showChooseCourse();
+    private void handleNameEntry(String nameInput) {
+        currentPlayer = new Player(nameInput, "Computer Science");
+        showCourseSelectionScreen();
     }
 
-    private void handleChooseCourse(String input) {
-        if      (input.equals("1")) selectCourse("Computer Science");
-        else if (input.equals("2")) selectCourse("Nursing");
-        else    display.showFeedback("Type  1  or  2  to choose your course.", GameWindow.COL_YELLOW);
+    private void handleCourseSelection(String courseInput) {
+        if (courseInput.equals("1"))      selectCourse("Computer Science");
+        else if (courseInput.equals("2")) selectCourse("Nursing");
+        else gameDisplay.showFeedback("Type  1  or  2  to choose your course.", GameWindow.COLOR_YELLOW);
     }
 
-    private void handleSplashInput(String input) {
-        if (input.equalsIgnoreCase("start")) startGame();
-        else display.showFeedback("Click START to begin.", GameWindow.COL_YELLOW);
+    private void handleSplashInput(String splashInput) {
+        if (splashInput.equalsIgnoreCase("start")) startGame();
+        else gameDisplay.showFeedback("Click START to begin.", GameWindow.COLOR_YELLOW);
     }
 
-    private void handleEndInput(String input) {
-        if (input.equalsIgnoreCase("restart")) restartGame();
-        else display.showFeedback("Click the button to play again.", GameWindow.COL_YELLOW);
+    private void handleEndScreenInput(String endInput) {
+        if (endInput.equalsIgnoreCase("restart")) restartGame();
+        else gameDisplay.showFeedback("Click the button to play again.", GameWindow.COLOR_YELLOW);
     }
 
-    private void handlePlayingInput(String input) {
-        // Navigate rooms by number
-        if (input.matches("[1-4]")) {
-            int idx = Integer.parseInt(input) - 1;
-            if (!rooms[idx].isLocked() || rooms[idx].isSolved()) loadRoom(idx);
-            else display.showFeedback("Room " + input + " is still locked.", GameWindow.COL_RED);
+    private void handleGameplayInput(String playerInput) {
+        if (playerInput.matches("[1-4]")) {
+            int selectedRoomIndex = Integer.parseInt(playerInput) - 1;
+            Escapable selectedRoom = roomSequence[selectedRoomIndex];
+
+            if (!selectedRoom.isLocked() || selectedRoom.isSolved()) {
+                loadRoom(selectedRoomIndex);
+            } else {
+                gameDisplay.showFeedback("Room " + playerInput + " is still locked.", GameWindow.COLOR_RED);
+            }
             return;
         }
 
-        RoomBehavior room = rooms[currentRoomIndex];
+        Escapable activeRoom = roomSequence[activeRoomIndex];
 
-        if (room.isSolved()) {
-            display.showFeedback("Already solved! Move to the next room.", GameWindow.COL_GREEN);
+        if (activeRoom.isSolved()) {
+            gameDisplay.showFeedback("Already solved! Move to the next room.", GameWindow.COLOR_GREEN);
             return;
         }
-        if (room.isLocked()) {
-            display.showFeedback("This room is locked.", GameWindow.COL_RED);
+        if (activeRoom.isLocked()) {
+            gameDisplay.showFeedback("This room is locked.", GameWindow.COLOR_RED);
             return;
         }
-        if (room.getAttempts() >= player.getMaxAttempts()) {
-            display.showFeedback("No more attempts. Press Hint for help.", GameWindow.COL_RED);
+        if (activeRoom.getAttempts() >= currentPlayer.getMaxAttempts()) {
+            gameDisplay.showFeedback("No more attempts. Press Hint for help.", GameWindow.COLOR_RED);
             return;
         }
 
-        room.checkAnswer(input);
+        activeRoom.checkAnswer(playerInput);
 
-        if (room.isSolved()) {
-            display.showFeedback("✓  Correct!  " + room.getLastMessage(), GameWindow.COL_GREEN);
+        if (activeRoom.isSolved()) {
+            gameDisplay.showFeedback("✓  Correct!  " + activeRoom.getLastMessage(), GameWindow.COLOR_GREEN);
             onRoomSolved();
         } else {
-            display.showFeedback("✗  " + room.getLastMessage()
-                + "  (" + room.getAttempts() + "/" + player.getMaxAttempts() + ")",
-                GameWindow.COL_RED);
+            gameDisplay.showFeedback(
+                "✗  " + activeRoom.getLastMessage()
+                    + "  (" + activeRoom.getAttempts() + "/" + currentPlayer.getMaxAttempts() + ")",
+                GameWindow.COLOR_RED
+            );
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Room Solved Logic
+    // -------------------------------------------------------------------------
 
     private void onRoomSolved() {
-        if (currentRoomIndex + 1 < rooms.length) {
-            rooms[currentRoomIndex + 1].unlock();
-            admin.sendMessage("Unlocked: " + rooms[currentRoomIndex + 1].getName());
+        if (activeRoomIndex + 1 < roomSequence.length) {
+            roomSequence[activeRoomIndex + 1].unlock();
+            gameController.sendMessage("Unlocked: " + roomSequence[activeRoomIndex + 1].getName());
         }
-        player.setProgress(player.getProgress() + 1);
-        if (allRoomsSolved()) {
+        currentPlayer.setProgress(currentPlayer.getProgress() + 1);
+
+        if (areAllRoomsSolved()) {
             triggerWin();
         } else {
-            javax.swing.Timer t = new javax.swing.Timer(900, e -> loadRoom(currentRoomIndex + 1));
-            t.setRepeats(false);
-            t.start();
+            javax.swing.Timer delayTimer = new javax.swing.Timer(900, event -> loadRoom(activeRoomIndex + 1));
+            delayTimer.setRepeats(false);
+            delayTimer.start();
         }
     }
 
-    // ── CLUE / HINT ──────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Button Actions
+    // -------------------------------------------------------------------------
 
-    private void onCluePressed() {
-        if (state != GameState.PLAYING) return;
-        RoomBehavior room = rooms[currentRoomIndex];
-        room.showClue();
-        display.showFeedback("🔍  " + room.getLastMessage(), GameWindow.COL_CYAN);
+    private void onClueButtonPressed() {
+        if (currentState != GameState.PLAYING) return;
+        Escapable activeRoom = roomSequence[activeRoomIndex];
+        activeRoom.showClue();
+        gameDisplay.showFeedback("🔍  " + activeRoom.getLastMessage(), GameWindow.COLOR_CYAN);
     }
 
-    private void onHintPressed() {
-        if (state != GameState.PLAYING) return;
-        RoomBehavior room = rooms[currentRoomIndex];
-        room.showHint();
-        display.showFeedback("💡  " + room.getLastMessage(), GameWindow.COL_YELLOW);
+    private void onHintButtonPressed() {
+        if (currentState != GameState.PLAYING) return;
+        Escapable activeRoom = roomSequence[activeRoomIndex];
+        activeRoom.showHint();
+
+        // Polymorphic side-effect: SecurityOfficeRoom re-locks itself when a hint is used.
+        // We immediately re-unlock it so the player can keep playing, but the feedback
+        // message (set inside showHint()) already communicates the lockdown penalty.
+        if (activeRoom.isLocked()) {
+            activeRoom.unlock();
+        }
+
+        gameDisplay.showFeedback("💡  " + activeRoom.getLastMessage(), GameWindow.COLOR_YELLOW);
     }
 
-    // ── WIN ──────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Win / Fail / Restart
+    // -------------------------------------------------------------------------
 
     private void triggerWin() {
-        timer.stop();
-        admin.overrideLoop();
-        state = GameState.WIN;
-        display.showWin(player, timer.getSecondsRemaining(), admin.getMessage());
-        display.setTimerText("ESCAPED!", GameWindow.COL_GREEN);
-        window.setInputEnabled(false);
-        window.getSubmitButton().setEnabled(true);
-        window.getInputField().setEnabled(true);
+        countdownTimer.stop();
+        gameController.overrideLoop();
+        currentState = GameState.WIN;
+        gameDisplay.showWin(currentPlayer, countdownTimer.getSecondsRemaining(), gameController.getMessage());
+        gameDisplay.setTimerText("ESCAPED!", GameWindow.COLOR_GREEN);
+        gameWindow.setInputEnabled(false);
+        gameWindow.setClueHintVisible(false);
+        gameWindow.getSubmitButton().setEnabled(true);
+        gameWindow.getInputField().setEnabled(true);
     }
 
-    // ── LOOP ─────────────────────────────────────────────────────────────────
-
-    private void triggerLoop() {
-        timer.stop();
-        admin.sendMessage("The loop resets. Try again.");
-        state = GameState.LOOP;
-        display.showLoop(player, admin.getMessage());
-        display.setTimerText("FAILED!", GameWindow.COL_RED);
-        window.setInputEnabled(false);
-        window.getSubmitButton().setEnabled(true);
-        window.getInputField().setEnabled(true);
+    private void triggerLoopFailed() {
+        countdownTimer.stop();
+        gameController.sendMessage("The loop resets. Try again.");
+        currentState = GameState.LOOP;
+        gameDisplay.showLoop(currentPlayer, gameController.getMessage());
+        gameDisplay.setTimerText("FAILED!", GameWindow.COLOR_RED);
+        gameWindow.setInputEnabled(false);
+        gameWindow.setClueHintVisible(false);
+        gameWindow.getSubmitButton().setEnabled(true);
+        gameWindow.getInputField().setEnabled(true);
     }
-
-    // ── RESTART ──────────────────────────────────────────────────────────────
 
     private void restartGame() {
-        admin.resetGame();
-        currentRoomIndex = 0;
-        player.reset();
-        showEnterName();
+        gameController.resetGame();
+        activeRoomIndex = 0;
+        currentPlayer.reset();
+        showNameEntryScreen();
     }
 
-    // ── HELPER ───────────────────────────────────────────────────────────────
-
-    private boolean allRoomsSolved() {
-        for (RoomBehavior r : rooms) if (!r.isSolved()) return false;
+    private boolean areAllRoomsSolved() {
+        for (Escapable room : roomSequence) {
+            if (!room.isSolved()) return false;
+        }
         return true;
     }
 }

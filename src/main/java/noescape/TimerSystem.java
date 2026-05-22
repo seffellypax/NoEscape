@@ -1,46 +1,44 @@
 package noescape;
 
 /**
- * TimerSystem
- * Tracks the countdown timer for the game.
- * When time reaches zero, the loop resets.
+ * Countdown timer backed by wall-clock time rather than tick counts,
+ * making it immune to Swing timer drift.
  *
- * OOP: Encapsulation - timer state is hidden, only public methods exposed.
+ * OOP: Encapsulation — timer state is fully hidden; only elapsed/remaining
+ *      time and lifecycle methods are exposed publicly.
  */
 public class TimerSystem {
 
-    private long    startTime;
-    private int     timeLimit;
-    private boolean running;
+    private long    startTimeMillis;
+    private final int timeLimitSeconds;
+    private boolean isRunning;
 
-    public TimerSystem(int timeLimitInSeconds) {
-        this.timeLimit = timeLimitInSeconds;
-        this.running   = false;
+    public TimerSystem(int timeLimitSeconds) {
+        this.timeLimitSeconds = timeLimitSeconds;
+        this.isRunning        = false;
     }
 
-    // Start the countdown
+    /** Starts the countdown from the current wall-clock time. */
     public void start() {
-        this.startTime = System.currentTimeMillis();
-        this.running   = true;
+        this.startTimeMillis = System.currentTimeMillis();
+        this.isRunning       = true;
     }
 
-    // Stop the countdown
+    /** Stops the countdown. Subsequent calls to {@link #hasTimeExpired()} return {@code false}. */
     public void stop() {
-        this.running = false;
+        this.isRunning = false;
     }
 
-    // Returns true if time has run out
+    /** Returns {@code true} when the timer is running and no seconds remain. */
     public boolean hasTimeExpired() {
-        return running && getSecondsRemaining() <= 0;
+        return isRunning && getSecondsRemaining() <= 0;
     }
 
-    // How many seconds are left
+    /** Returns the number of whole seconds remaining, clamped to zero. */
     public int getSecondsRemaining() {
-        long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-        return (int) Math.max(0, timeLimit - elapsed);
+        long elapsedSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000;
+        return (int) Math.max(0, timeLimitSeconds - elapsedSeconds);
     }
 
-    public boolean isRunning() {
-        return running;
-    }
+    public boolean isRunning() { return isRunning; }
 }

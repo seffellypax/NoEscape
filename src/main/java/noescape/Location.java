@@ -1,23 +1,23 @@
 package noescape;
 
 /**
- * Location
- * Represents a physical campus area containing a room.
+ * Associates a physical building name with a specific room.
+ * Used to attach spatial context to rooms without modifying the room itself.
  *
- * OOP: Encapsulation - wraps a room with building metadata.
+ * OOP: Encapsulation — building metadata is wrapped alongside a room reference.
  */
 public class Location {
 
     private final String       buildingName;
-    private final RoomBehavior room;
+    private final Escapable room;
 
-    public Location(String buildingName, RoomBehavior room) {
+    public Location(String buildingName, Escapable room) {
         this.buildingName = buildingName;
         this.room         = room;
     }
 
     public String       getBuildingName() { return buildingName; }
-    public RoomBehavior getRoom()         { return room;         }
+    public Escapable getRoom()         { return room; }
 
     @Override
     public String toString() {

@@ -1,90 +1,65 @@
 package noescape;
 
 /**
- * LibraryRoom
- * Implements RoomBehavior directly.
+ * RESEARCH MODE room — in a library, every resource you consult costs you time.
+ * Using the hint here consumes one of your limited attempts.
+ *
+ * Polymorphic behaviour (overrides BaseRoom):
+ *
+ *   showClue()    → Always free; a librarian freely points you to the right shelf.
+ *
+ *   showHint()    → COSTS ONE ATTEMPT. Like photocopying a page — there's a fee.
+ *                   If you are already at max attempts, the hint is blocked.
+ *
+ *   checkAnswer() → Case-insensitive, trimmed match (standard behaviour).
+ *
+ * Bird analogy: Penguin — helpful and social, but every resource has a cost.
  *
  * OOP:
- *   Encapsulation - all fields are private
- *   Abstraction   - implements RoomBehavior
+ *   Inheritance  — extends BaseRoom (shares name, lock, attempt tracking)
+ *   Polymorphism — showHint() penalises the player, unlike any other room
  */
-public class LibraryRoom implements RoomBehavior {
+public class LibraryRoom extends BaseRoom {
 
-    private String  name;
-    private boolean locked;
-    private String  puzzle;
-    private String  answer;
-    private String  clue;
-    private String  hint;
-    private String  lastMessage = "";
-    private boolean solved      = false;
-    private int     attempts    = 0;
-
-    public LibraryRoom(String name, boolean locked,
-                        String puzzle, String answer,
-                        String clue,   String hint) {
-        this.name   = name;
-        this.locked = locked;
-        this.puzzle = puzzle;
-        this.answer = answer;
-        this.clue   = clue;
-        this.hint   = hint;
+    public LibraryRoom(String name, boolean isLocked,
+                       String puzzleQuestion, String correctAnswer,
+                       String clueText, String hintText) {
+        super(name, isLocked, puzzleQuestion, correctAnswer, clueText, hintText);
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Override
-    public void unlock() {
-        this.locked = false;
-    }
-
-    @Override
-    public boolean enter(Player player) {
-        if (locked) {
-            lastMessage = "Room is locked! Solve the previous room first.";
-            return false;
-        }
-        lastMessage = "You entered: " + name;
-        return true;
-    }
-
-    @Override
-    public void showPuzzle() {
-        lastMessage = "PUZZLE: " + puzzle;
-    }
-
+    /**
+     * Standard clue — always free in the library.
+     */
     @Override
     public void showClue() {
-        lastMessage = "CLUE: " + clue;
+        lastMessage = "CLUE: " + clueText;
     }
 
+    /**
+     * RESEARCH PENALTY: Consulting the hint costs one attempt.
+     * The librarian gives you the answer key, but it counts against you.
+     */
     @Override
     public void showHint() {
-        lastMessage = "HINT: " + hint;
+        attemptCount++;
+        lastMessage = "HINT (−1 attempt): " + hintText
+                    + "  [Attempt " + attemptCount + " consumed]";
     }
 
+    /**
+     * Standard case-insensitive answer check.
+     */
     @Override
-    public void checkAnswer(String userAnswer) {
-        if (userAnswer.trim().equalsIgnoreCase(answer)) {
-            solved      = true;
-            lastMessage = "Correct! You cleared: " + name;
+    public void checkAnswer(String playerAnswer) {
+        if (playerAnswer.trim().equalsIgnoreCase(correctAnswer)) {
+            isSolved    = true;
+            lastMessage = "Correct! You cleared: " + getName();
         } else {
-            attempts++;
-            lastMessage = "Wrong answer. Attempt " + attempts + " used.";
+            attemptCount++;
+            lastMessage = "Wrong answer. Attempt " + attemptCount + " used.";
         }
     }
 
-    @Override public String  getRoomType()    { return "Library";    }
-    @Override public boolean isSolved()       { return solved;      }
-    @Override public int     getAttempts()    { return attempts;    }
-    @Override public String  getLastMessage() { return lastMessage; }
-    @Override public String  getPuzzle()      { return puzzle;      }
+    @Override
+    public String getRoomType() { return "Library"; }
 }

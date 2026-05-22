@@ -5,69 +5,66 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
- * GameDisplay
- * Delegates all screen rendering to GameWindow.
- * Keeps Game.java clean — it calls display.showX(), not window directly.
+ * Thin delegation layer between {@link Game} and {@link GameWindow}.
+ * Keeps {@code Game} free of direct window references.
  *
- * OOP: Encapsulation - Game never accesses GameWindow screens directly.
+ * OOP: Encapsulation — {@code Game} never accesses {@code GameWindow} screens directly.
  */
 public class GameDisplay {
 
-    private JLabel     timerLabel;
-    private GameWindow window;
+    private final JLabel     timerLabel;
+    private final GameWindow gameWindow;
 
-    public GameDisplay(Object ignored, JLabel timerLabel, GameWindow window) {
+    public GameDisplay(Object ignoredLegacyParam, JLabel timerLabel, GameWindow gameWindow) {
         this.timerLabel = timerLabel;
-        this.window     = window;
+        this.gameWindow = gameWindow;
     }
 
-    // Screens
     public void showEnterName() {
-        window.showEnterNameScreen();
+        gameWindow.showEnterNameScreen();
     }
 
     public void showChooseCourse(String playerName,
-                                 ActionListener csAction,
-                                 ActionListener nursingAction) {
-        window.showChooseCourseScreen(playerName, csAction, nursingAction);
+                                 ActionListener onComputerScienceSelected,
+                                 ActionListener onNursingSelected) {
+        gameWindow.showChooseCourseScreen(playerName, onComputerScienceSelected, onNursingSelected);
     }
 
     public void showSplash(Player player) {
-        window.showSplashScreen(player);
+        gameWindow.showSplashScreen(player);
     }
 
-    public void showRoom(RoomBehavior room, int index, int total,
-                         Player player, String adminMessage,
-                         RoomBehavior[] rooms, int currentIndex) {
-        window.showRoomScreen(room, index, total, player,
-                              adminMessage, rooms, currentIndex);
+    public void showRoom(Escapable room, int roomIndex, int totalRooms,
+                         Player player, String controllerMessage,
+                         Escapable[] allRooms, int activeRoomIndex) {
+        gameWindow.showRoomScreen(room, roomIndex, totalRooms, player,
+                                  controllerMessage, allRooms, activeRoomIndex);
     }
 
-    public void showWin(Player player, int secondsLeft, String adminMessage) {
-        window.showWinScreen(player, secondsLeft, adminMessage);
+    public void showWin(Player player, int secondsRemaining, String controllerMessage) {
+        gameWindow.showWinScreen(player, secondsRemaining, controllerMessage);
     }
 
-    public void showLoop(Player player, String adminMessage) {
-        window.showLoopScreen(player, adminMessage);
+    public void showLoop(Player player, String controllerMessage) {
+        gameWindow.showLoopScreen(player, controllerMessage);
     }
 
-    // Feedback (answer results, clues, hints)
-    public void showFeedback(String msg, Color color) {
-        window.showFeedback(msg, color);
+    public void showFeedback(String feedbackMessage, Color textColor) {
+        gameWindow.showFeedback(feedbackMessage, textColor);
     }
 
-    // Timer label updates
-    public void updateTimer(int secondsLeft) {
-        Color color;
-        if      (secondsLeft <= 10) color = GameWindow.COL_RED;
-        else if (secondsLeft <= 30) color = GameWindow.COL_ORANGE;
-        else                        color = GameWindow.COL_YELLOW;
-        timerLabel.setForeground(color);
-        timerLabel.setText("⏱  " + secondsLeft + "s  ");
+    public void updateTimer(int secondsRemaining) {
+        Color timerColor;
+        if      (secondsRemaining <= 10) timerColor = GameWindow.COLOR_RED;
+        else if (secondsRemaining <= 30) timerColor = GameWindow.COLOR_ORANGE;
+        else                             timerColor = GameWindow.COLOR_YELLOW;
+
+        timerLabel.setForeground(timerColor);
+        timerLabel.setText("⏱  " + secondsRemaining + "s  ");
     }
 
-    public void setTimerText(String text, Color color) {
+    public void setTimerText(String text, Color textColor) {
         timerLabel.setText(text);
-        timerLabel.setForeground(color);
+        timerLabel.setForeground(textColor);
     }
 }

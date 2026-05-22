@@ -1,90 +1,72 @@
 package noescape;
 
 /**
- * Classroom - Room 1
- * The starting room, always unlocked.
+ * STRICT MODE room — models a classroom where the teacher withholds help
+ * until the student has genuinely struggled.
+ *
+ * Polymorphic behaviour (overrides BaseRoom):
+ *
+ *   showClue()    → BLOCKED until the player has failed at least twice.
+ *                   A professor doesn't just give away the answer — you have
+ *                   to show you tried first.
+ *
+ *   showHint()    → Always available; gives a small letter-based nudge.
+ *
+ *   checkAnswer() → Case-insensitive, trimmed match (standard behaviour).
+ *
+ * Bird analogy: Eagle — powerful but demands effort before rewarding it.
  *
  * OOP:
- *   Encapsulation - all fields are private
- *   Abstraction   - implements RoomBehavior
+ *   Inheritance  — extends BaseRoom (shares name, lock, attempt tracking)
+ *   Polymorphism — showClue() behaves differently than every other room
  */
-public class Classroom implements RoomBehavior {
+public class Classroom extends BaseRoom {
 
-    private String  name;
-    private boolean locked;
-    private String  puzzle;
-    private String  answer;
-    private String  clue;
-    private String  hint;
-    private String  lastMessage = "";
-    private boolean solved      = false;
-    private int     attempts    = 0;
+    private static final int ATTEMPTS_REQUIRED_FOR_CLUE = 2;
 
-    public Classroom(String name, boolean locked,
-                     String puzzle, String answer,
-                     String clue,   String hint) {
-        this.name   = name;
-        this.locked = locked;
-        this.puzzle = puzzle;
-        this.answer = answer;
-        this.clue   = clue;
-        this.hint   = hint;
+    public Classroom(String name, boolean isLocked,
+                     String puzzleQuestion, String correctAnswer,
+                     String clueText, String hintText) {
+        super(name, isLocked, puzzleQuestion, correctAnswer, clueText, hintText);
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Override
-    public void unlock() {
-        this.locked = false;
-    }
-
-    @Override
-    public boolean enter(Player player) {
-        if (locked) {
-            lastMessage = "Room is locked! Solve the previous room first.";
-            return false;
-        }
-        lastMessage = "You entered: " + name;
-        return true;
-    }
-
-    @Override
-    public void showPuzzle() {
-        lastMessage = "PUZZLE: " + puzzle;
-    }
-
+    /**
+     * STRICT: Clue is only revealed after the player has failed at least twice.
+     * Models a classroom rule — the teacher won't help until you've tried.
+     */
     @Override
     public void showClue() {
-        lastMessage = "CLUE: " + clue;
-    }
-
-    @Override
-    public void showHint() {
-        lastMessage = "HINT: " + hint;
-    }
-
-    @Override
-    public void checkAnswer(String userAnswer) {
-        if (userAnswer.trim().equalsIgnoreCase(answer)) {
-            solved      = true;
-            lastMessage = "Correct! You cleared: " + name;
+        if (attemptCount < ATTEMPTS_REQUIRED_FOR_CLUE) {
+            int attemptsNeeded = ATTEMPTS_REQUIRED_FOR_CLUE - attemptCount;
+            lastMessage = "The professor says: Try harder first! "
+                        + "Fail " + attemptsNeeded + " more time(s) to unlock the clue.";
         } else {
-            attempts++;
-            lastMessage = "Wrong answer. Attempt " + attempts + " used.";
+            lastMessage = "CLUE: " + clueText;
         }
     }
 
-    @Override public String  getRoomType()    { return "Classroom"; }
-    @Override public boolean isSolved()       { return solved;      }
-    @Override public int     getAttempts()    { return attempts;    }
-    @Override public String  getLastMessage() { return lastMessage; }
-    @Override public String  getPuzzle()      { return puzzle;      }
+    /**
+     * Standard hint — always available, gives a letter nudge.
+     */
+    @Override
+    public void showHint() {
+        lastMessage = "HINT: " + hintText;
+    }
+
+    /**
+     * Standard case-insensitive answer check.
+     */
+    @Override
+    public void checkAnswer(String playerAnswer) {
+        if (playerAnswer.trim().equalsIgnoreCase(correctAnswer)) {
+            isSolved    = true;
+            lastMessage = "Correct! You cleared: " + getName();
+        } else {
+            attemptCount++;
+            lastMessage = "Wrong answer. Attempt " + attemptCount + " used.";
+        }
+    }
+
+    @Override
+    public String getRoomType() { return "Classroom"; }
 }

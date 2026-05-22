@@ -1,90 +1,66 @@
 package noescape;
 
 /**
- * TsgRoom
- * Implements RoomBehavior directly.
+ * TECHNICAL MODE room — the TSG server room demands precision.
+ * Answers must match exactly, including letter casing, just like a real terminal command.
+ *
+ * Polymorphic behaviour (overrides BaseRoom):
+ *
+ *   showClue()    → Always available; explains what format the answer must be in.
+ *
+ *   showHint()    → Always available; gives a letter nudge.
+ *
+ *   checkAnswer() → EXACT / CASE-SENSITIVE match (no trim forgiveness).
+ *                   "emr" ≠ "EMR". Type it right or it fails.
+ *                   This forces the player to pay close attention to the puzzle wording.
+ *
+ * Bird analogy: Parrot — repeats exactly what it hears; precision is everything.
  *
  * OOP:
- *   Encapsulation - all fields are private
- *   Abstraction   - implements RoomBehavior
+ *   Inheritance  — extends BaseRoom (shares name, lock, attempt tracking)
+ *   Polymorphism — checkAnswer() uses strict exact matching, unlike all other rooms
  */
-public class TsgRoom implements RoomBehavior {
+public class TsgRoom extends BaseRoom {
 
-    private String  name;
-    private boolean locked;
-    private String  puzzle;
-    private String  answer;
-    private String  clue;
-    private String  hint;
-    private String  lastMessage = "";
-    private boolean solved      = false;
-    private int     attempts    = 0;
-
-    public TsgRoom(String name, boolean locked,
-                        String puzzle, String answer,
-                        String clue,   String hint) {
-        this.name   = name;
-        this.locked = locked;
-        this.puzzle = puzzle;
-        this.answer = answer;
-        this.clue   = clue;
-        this.hint   = hint;
+    public TsgRoom(String name, boolean isLocked,
+                   String puzzleQuestion, String correctAnswer,
+                   String clueText, String hintText) {
+        super(name, isLocked, puzzleQuestion, correctAnswer, clueText, hintText);
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Override
-    public void unlock() {
-        this.locked = false;
-    }
-
-    @Override
-    public boolean enter(Player player) {
-        if (locked) {
-            lastMessage = "Room is locked! Solve the previous room first.";
-            return false;
-        }
-        lastMessage = "You entered: " + name;
-        return true;
-    }
-
-    @Override
-    public void showPuzzle() {
-        lastMessage = "PUZZLE: " + puzzle;
-    }
-
+    /**
+     * Standard clue — also reminds the player about the case-sensitivity rule.
+     */
     @Override
     public void showClue() {
-        lastMessage = "CLUE: " + clue;
+        lastMessage = "CLUE: " + clueText
+                    + "  [TSG Terminal: answer is case-sensitive!]";
     }
 
+    /**
+     * Standard hint — gives a letter/format nudge.
+     */
     @Override
     public void showHint() {
-        lastMessage = "HINT: " + hint;
+        lastMessage = "HINT: " + hintText;
     }
 
+    /**
+     * EXACT MATCH: The answer must match the stored value precisely —
+     * same casing, same spacing. No forgiveness. Just like typing a terminal command.
+     */
     @Override
-    public void checkAnswer(String userAnswer) {
-        if (userAnswer.trim().equalsIgnoreCase(answer)) {
-            solved      = true;
-            lastMessage = "Correct! You cleared: " + name;
+    public void checkAnswer(String playerAnswer) {
+        if (playerAnswer.equals(correctAnswer)) {
+            isSolved    = true;
+            lastMessage = "Correct! You cleared: " + getName();
         } else {
-            attempts++;
-            lastMessage = "Wrong answer. Attempt " + attempts + " used.";
+            attemptCount++;
+            lastMessage = "Wrong answer (case-sensitive). Attempt " + attemptCount + " used. "
+                        + "Check your capitalisation!";
         }
     }
 
-    @Override public String  getRoomType()    { return "TSG";    }
-    @Override public boolean isSolved()       { return solved;      }
-    @Override public int     getAttempts()    { return attempts;    }
-    @Override public String  getLastMessage() { return lastMessage; }
-    @Override public String  getPuzzle()      { return puzzle;      }
+    @Override
+    public String getRoomType() { return "TSG"; }
 }
