@@ -1,18 +1,15 @@
 package noescape;
 
 /**
- * Manages game-level messaging and loop-override state.
- * Acts as the narrative voice of the game world.
- *
  * OOP: Encapsulation — internal state hidden behind a clean public API.
  */
 public class GameController {
 
-    private String  currentMessage;
+    private String currentMessage;
     private boolean isLoopOverridden;
 
     public GameController() {
-        this.currentMessage   = " ";
+        this.currentMessage = " ";
         this.isLoopOverridden = false;
     }
 
@@ -22,14 +19,18 @@ public class GameController {
 
     public void resetGame() {
         this.isLoopOverridden = false;
-        this.currentMessage   = " ";
+        this.currentMessage = " ";
     }
 
     public void overrideLoop() {
         this.isLoopOverridden = true;
-        this.currentMessage   = "LOOP OVERRIDE: You are free.";
+        this.currentMessage = "LOOP OVERRIDE: You are free.";
     }
 
-    public String  getMessage()       { return currentMessage; }
-    public boolean isLoopOverridden() { return isLoopOverridden; }
+    public String getMessage() { 
+        return currentMessage; 
+    }
+    public boolean isLoopOverridden() { 
+        return isLoopOverridden; 
+    }
 }

@@ -7,14 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Loads key-value configuration from a {@code .env} file at the given path.
- * Falls back to caller-supplied defaults when a key is absent or the file
- * cannot be read.
- *
  * OOP: Encapsulation — file I/O and parse logic are hidden inside this class.
  */
 public class EnvironmentLoader {
-
     private final Map<String, String> configValues = new HashMap<>();
 
     public EnvironmentLoader(String filePath) {
@@ -30,7 +25,7 @@ public class EnvironmentLoader {
 
                 int equalsIndex = trimmedLine.indexOf('=');
                 if (equalsIndex > 0) {
-                    String key   = trimmedLine.substring(0, equalsIndex).trim();
+                    String key = trimmedLine.substring(0, equalsIndex).trim();
                     String value = trimmedLine.substring(equalsIndex + 1).trim();
                     configValues.put(key, value);
                 }
@@ -42,6 +37,45 @@ public class EnvironmentLoader {
 
     public String get(String key, String defaultValue) {
         return configValues.getOrDefault(key, defaultValue);
+    }
+
+    public Escapable[] buildRoomSequence(String course) {
+        String prefix = course.contains("Nursing") ? "NR_" : "CS_";
+
+        return new Escapable[]{
+            new Classroom(
+                configValues.get(prefix + "ROOM1_NAME"),
+                false,
+                configValues.get(prefix + "ROOM1_PUZZLE"),
+                configValues.get(prefix + "ROOM1_ANSWER"),
+                configValues.get(prefix + "ROOM1_CLUE"),
+                configValues.get(prefix + "ROOM1_HINT")
+            ),
+            new LibraryRoom(
+                configValues.get(prefix + "ROOM2_NAME"),
+                true,
+                configValues.get(prefix + "ROOM2_PUZZLE"),
+                configValues.get(prefix + "ROOM2_ANSWER"),
+                configValues.get(prefix + "ROOM2_CLUE"),
+                configValues.get(prefix + "ROOM2_HINT")
+            ),
+            new TsgRoom(
+                configValues.get(prefix + "ROOM3_NAME"),
+                true,
+                configValues.get(prefix + "ROOM3_PUZZLE"),
+                configValues.get(prefix + "ROOM3_ANSWER"),
+                configValues.get(prefix + "ROOM3_CLUE"),
+                configValues.get(prefix + "ROOM3_HINT")
+            ),
+            new SecurityOfficeRoom(
+                configValues.get(prefix + "ROOM4_NAME"),
+                true,
+                configValues.get(prefix + "ROOM4_PUZZLE"),
+                configValues.get(prefix + "ROOM4_ANSWER"),
+                configValues.get(prefix + "ROOM4_CLUE"),
+                configValues.get(prefix + "ROOM4_HINT")
+            )
+        };
     }
 
     public int getInt(String key, int defaultValue) {

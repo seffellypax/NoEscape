@@ -1,4 +1,5 @@
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/Classroom.java
+/Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/LoopPanel.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/TsgRoom.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/GameWindow.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/Location.java
@@ -6,12 +7,18 @@
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/Escapable.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/GameDisplay.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/EnvironmentLoader.java
+/Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/CourseSelectPanel.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/SecurityOfficeRoom.java
+/Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/WinPanel.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/BaseRoom.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/TimerSystem.java
+/Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/BasePanel.java
+/Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/RoomPanel.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/Main.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/Game.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/GameState.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/LibraryRoom.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/SplashPanel.java
+/Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/ReadyPanel.java
+/Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/NameEntryPanel.java
 /Users/shiellamariebarcoma/Desktop/NoEscape/NoEscape/NoEscape-1/NoEscape/src/main/java/noescape/Player.java

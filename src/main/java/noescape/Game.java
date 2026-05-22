@@ -1,9 +1,6 @@
 package noescape;
 
 /**
- * Core game controller that manages state transitions, player lifecycle,
- * room progression, and the main game loop.
- *
  * OOP Principles Demonstrated:
  *   Encapsulation - private fields exposed only through controlled methods
  *   Polymorphism  - roomSequence[] stored as Escapable type
@@ -11,7 +8,6 @@ package noescape;
  *   Inheritance   - SplashPanel extends JPanel
  */
 public class Game {
-
     private GameWindow gameWindow;
     private GameDisplay gameDisplay;
     private Player currentPlayer;
@@ -24,13 +20,12 @@ public class Game {
 
     public Game() {
         environmentLoader = new EnvironmentLoader(".env");
-        gameController    = new GameController();
-        activeRoomIndex   = 0;
-        currentState      = GameState.ENTER_NAME;
+        gameController = new GameController();
+        activeRoomIndex = 0;
+        currentState = GameState.ENTER_NAME;
 
-        gameWindow  = new GameWindow();
+        gameWindow = new GameWindow();
         gameDisplay = new GameDisplay(
-            gameWindow.getDisplayArea(),
             gameWindow.getTimerLabel(),
             gameWindow
         );
@@ -44,10 +39,6 @@ public class Game {
         showNameEntryScreen();
         startGameLoop();
     }
-
-    // -------------------------------------------------------------------------
-    // Screen Transitions
-    // -------------------------------------------------------------------------
 
     private void showNameEntryScreen() {
         currentState = GameState.ENTER_NAME;
@@ -94,10 +85,6 @@ public class Game {
         gameWindow.getInputField().requestFocus();
     }
 
-    // -------------------------------------------------------------------------
-    // Game Loop
-    // -------------------------------------------------------------------------
-
     private void startGameLoop() {
         javax.swing.Timer gameLoop = new javax.swing.Timer(1000, event -> onTick());
         gameLoop.start();
@@ -109,16 +96,11 @@ public class Game {
         if (countdownTimer.hasTimeExpired()) triggerLoopFailed();
     }
 
-    // -------------------------------------------------------------------------
-    // Game Initialization
-    // -------------------------------------------------------------------------
-
     private void startGame() {
         roomSequence = buildRoomSequence();
-        int totalSeconds = environmentLoader.getInt("TIMER_SECONDS", 120)
-                         + currentPlayer.getBonusSeconds();
+        int totalSeconds = environmentLoader.getInt("TIMER_SECONDS", 120) + currentPlayer.getBonusSeconds();
         countdownTimer = new TimerSystem(totalSeconds);
-        currentState   = GameState.PLAYING;
+        currentState = GameState.PLAYING;
         countdownTimer.start();
         gameWindow.setClueHintVisible(true);
         gameController.sendMessage("The loop has begun. Find a way out, " + currentPlayer.getName() + ".");
@@ -126,47 +108,8 @@ public class Game {
     }
 
     private Escapable[] buildRoomSequence() {
-        String coursePrefix = currentPlayer.getCourse().contains("Nursing") ? "NR_" : "CS_";
-
-        return new Escapable[]{
-            new Classroom(
-                environmentLoader.get(coursePrefix + "ROOM1_NAME",   "Classroom 101"),
-                false,
-                environmentLoader.get(coursePrefix + "ROOM1_PUZZLE", "What do nurses measure to check how fast the heart is beating?"),
-                environmentLoader.get(coursePrefix + "ROOM1_ANSWER", "pulse"),
-                environmentLoader.get(coursePrefix + "ROOM1_CLUE",   "You can feel it on the wrist or the neck."),
-                environmentLoader.get(coursePrefix + "ROOM1_HINT",   "It starts with the letter P.")
-            ),
-            new LibraryRoom(
-                environmentLoader.get(coursePrefix + "ROOM2_NAME",   "Library"),
-                true,
-                environmentLoader.get(coursePrefix + "ROOM2_PUZZLE", "What is the normal human body temperature in Celsius?"),
-                environmentLoader.get(coursePrefix + "ROOM2_ANSWER", "37"),
-                environmentLoader.get(coursePrefix + "ROOM2_CLUE",   "It is the standard temperature a nurse checks with a thermometer."),
-                environmentLoader.get(coursePrefix + "ROOM2_HINT",   "It is a two-digit number between 36 and 38.")
-            ),
-            new TsgRoom(
-                environmentLoader.get(coursePrefix + "ROOM3_NAME",   "TSG"),
-                true,
-                environmentLoader.get(coursePrefix + "ROOM3_PUZZLE", "What do nurses use to record and access patient medical information digitally?"),
-                environmentLoader.get(coursePrefix + "ROOM3_ANSWER", "EMR"),
-                environmentLoader.get(coursePrefix + "ROOM3_CLUE",   "TSG manages the hospital software system nurses use every day."),
-                environmentLoader.get(coursePrefix + "ROOM3_HINT",   "Three letters. Stands for Electronic Medical Records.")
-            ),
-            new SecurityOfficeRoom(
-                environmentLoader.get(coursePrefix + "ROOM4_NAME",   "Security Office"),
-                true,
-                environmentLoader.get(coursePrefix + "ROOM4_PUZZLE", "What is the name of the oath nurses take, named after a famous nurse?"),
-                environmentLoader.get(coursePrefix + "ROOM4_ANSWER", "nightingale pledge"),
-                environmentLoader.get(coursePrefix + "ROOM4_CLUE",   "Named after the founder of modern nursing."),
-                environmentLoader.get(coursePrefix + "ROOM4_HINT",   "Two words. Think of Florence __________.")
-            )
-        };
+        return environmentLoader.buildRoomSequence(currentPlayer.getCourse());
     }
-
-    // -------------------------------------------------------------------------
-    // Room Navigation
-    // -------------------------------------------------------------------------
 
     private void loadRoom(int roomIndex) {
         activeRoomIndex = roomIndex;
@@ -183,21 +126,17 @@ public class Game {
         gameWindow.setInputEnabled(true);
     }
 
-    // -------------------------------------------------------------------------
-    // Input Handling
-    // -------------------------------------------------------------------------
-
     private void processPlayerInput() {
         String rawInput = gameWindow.getInputField().getText().trim();
         gameWindow.getInputField().setText("");
         if (rawInput.isEmpty()) return;
 
         switch (currentState) {
-            case ENTER_NAME   -> handleNameEntry(rawInput);
+            case ENTER_NAME -> handleNameEntry(rawInput);
             case CHOOSE_COURSE -> handleCourseSelection(rawInput);
-            case SPLASH       -> handleSplashInput(rawInput);
-            case WIN, LOOP    -> handleEndScreenInput(rawInput);
-            case PLAYING      -> handleGameplayInput(rawInput);
+            case SPLASH -> handleSplashInput(rawInput);
+            case WIN, LOOP -> handleEndScreenInput(rawInput);
+            case PLAYING -> handleGameplayInput(rawInput);
         }
     }
 
@@ -207,7 +146,7 @@ public class Game {
     }
 
     private void handleCourseSelection(String courseInput) {
-        if (courseInput.equals("1"))      selectCourse("Computer Science");
+        if (courseInput.equals("1")) selectCourse("Computer Science");
         else if (courseInput.equals("2")) selectCourse("Nursing");
         else gameDisplay.showFeedback("Type  1  or  2  to choose your course.", GameWindow.COLOR_YELLOW);
     }
@@ -257,16 +196,11 @@ public class Game {
             onRoomSolved();
         } else {
             gameDisplay.showFeedback(
-                "✗  " + activeRoom.getLastMessage()
-                    + "  (" + activeRoom.getAttempts() + "/" + currentPlayer.getMaxAttempts() + ")",
+                "✗  " + activeRoom.getLastMessage() + "  (" + activeRoom.getAttempts() + "/" + currentPlayer.getMaxAttempts() + ")",
                 GameWindow.COLOR_RED
             );
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Room Solved Logic
-    // -------------------------------------------------------------------------
 
     private void onRoomSolved() {
         if (activeRoomIndex + 1 < roomSequence.length) {
@@ -284,10 +218,6 @@ public class Game {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Button Actions
-    // -------------------------------------------------------------------------
-
     private void onClueButtonPressed() {
         if (currentState != GameState.PLAYING) return;
         Escapable activeRoom = roomSequence[activeRoomIndex];
@@ -300,19 +230,12 @@ public class Game {
         Escapable activeRoom = roomSequence[activeRoomIndex];
         activeRoom.showHint();
 
-        // Polymorphic side-effect: SecurityOfficeRoom re-locks itself when a hint is used.
-        // We immediately re-unlock it so the player can keep playing, but the feedback
-        // message (set inside showHint()) already communicates the lockdown penalty.
         if (activeRoom.isLocked()) {
             activeRoom.unlock();
         }
 
         gameDisplay.showFeedback("💡  " + activeRoom.getLastMessage(), GameWindow.COLOR_YELLOW);
     }
-
-    // -------------------------------------------------------------------------
-    // Win / Fail / Restart
-    // -------------------------------------------------------------------------
 
     private void triggerWin() {
         countdownTimer.stop();

@@ -5,17 +5,13 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
- * Thin delegation layer between {@link Game} and {@link GameWindow}.
- * Keeps {@code Game} free of direct window references.
- *
  * OOP: Encapsulation — {@code Game} never accesses {@code GameWindow} screens directly.
  */
 public class GameDisplay {
-
-    private final JLabel     timerLabel;
+    private final JLabel timerLabel;
     private final GameWindow gameWindow;
 
-    public GameDisplay(Object ignoredLegacyParam, JLabel timerLabel, GameWindow gameWindow) {
+    public GameDisplay(JLabel timerLabel, GameWindow gameWindow) {
         this.timerLabel = timerLabel;
         this.gameWindow = gameWindow;
     }
@@ -24,9 +20,7 @@ public class GameDisplay {
         gameWindow.showEnterNameScreen();
     }
 
-    public void showChooseCourse(String playerName,
-                                 ActionListener onComputerScienceSelected,
-                                 ActionListener onNursingSelected) {
+    public void showChooseCourse(String playerName, ActionListener onComputerScienceSelected, ActionListener onNursingSelected) {
         gameWindow.showChooseCourseScreen(playerName, onComputerScienceSelected, onNursingSelected);
     }
 
@@ -34,11 +28,8 @@ public class GameDisplay {
         gameWindow.showSplashScreen(player);
     }
 
-    public void showRoom(Escapable room, int roomIndex, int totalRooms,
-                         Player player, String controllerMessage,
-                         Escapable[] allRooms, int activeRoomIndex) {
-        gameWindow.showRoomScreen(room, roomIndex, totalRooms, player,
-                                  controllerMessage, allRooms, activeRoomIndex);
+    public void showRoom(Escapable room, int roomIndex, int totalRooms, Player player, String controllerMessage, Escapable[] allRooms, int activeRoomIndex) {
+        gameWindow.showRoomScreen(room, roomIndex, totalRooms, player, controllerMessage, allRooms, activeRoomIndex);
     }
 
     public void showWin(Player player, int secondsRemaining, String controllerMessage) {
@@ -55,9 +46,9 @@ public class GameDisplay {
 
     public void updateTimer(int secondsRemaining) {
         Color timerColor;
-        if      (secondsRemaining <= 10) timerColor = GameWindow.COLOR_RED;
+        if (secondsRemaining <= 10) timerColor = GameWindow.COLOR_RED;
         else if (secondsRemaining <= 30) timerColor = GameWindow.COLOR_ORANGE;
-        else                             timerColor = GameWindow.COLOR_YELLOW;
+        else timerColor = GameWindow.COLOR_YELLOW;
 
         timerLabel.setForeground(timerColor);
         timerLabel.setText("⏱  " + secondsRemaining + "s  ");
