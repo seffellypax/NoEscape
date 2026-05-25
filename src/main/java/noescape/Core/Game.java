@@ -101,9 +101,7 @@ public class Game {
         currentState = GameState.PLAYING;
         countdownTimer.start();
         gameWindow.setClueHintVisible(true);
-        gameController.sendMessage(
-            "The loop has begun. Find a way out, " + currentPlayer.getName() + "."
-        );
+        gameController.sendMessage( "The loop has begun. Find a way out, " + currentPlayer.getName() + "." );
         loadRoom(0);
     }
 
@@ -179,7 +177,6 @@ public class Game {
             gameDisplay.showFeedback("Already solved! Move to the next room.", GameWindow.COLOR_GREEN);
             return;
         }
-
         if (activeRoom.isLocked()) {
             gameDisplay.showFeedback("This room is locked.", GameWindow.COLOR_RED);
             return;
@@ -200,7 +197,6 @@ public class Game {
                 + "  (" + activeRoom.getAttempts() + "/" + currentPlayer.getMaxAttempts() + ")",
                 GameWindow.COLOR_RED
             );
-
             if (activeRoom.getAttempts() >= currentPlayer.getMaxAttempts()) {
                 triggerLoopFailed();
             }
@@ -210,16 +206,14 @@ public class Game {
     private void onRoomSolved() {
         if (activeRoomIndex + 1 < roomSequence.length) {
             roomSequence[activeRoomIndex + 1].unlock();
-            gameController.sendMessage( "Unlocked: " + roomSequence[activeRoomIndex + 1].getName()
-            );
+            gameController.sendMessage( "Unlocked: " + roomSequence[activeRoomIndex + 1].getName());
         }
         currentPlayer.setProgress(currentPlayer.getProgress() + 1);
 
         if (areAllRoomsSolved()) {
             triggerWin();
         } else {
-            javax.swing.Timer delayTimer = new javax.swing.Timer(
-                900, event -> loadRoom(activeRoomIndex + 1)
+            javax.swing.Timer delayTimer = new javax.swing.Timer(900, event -> loadRoom(activeRoomIndex + 1)
             );
             delayTimer.setRepeats(false);
             delayTimer.start();
@@ -243,13 +237,17 @@ public class Game {
         }
 
         gameDisplay.showFeedback("💡  " + activeRoom.getLastMessage(), GameWindow.COLOR_YELLOW);
+
+        if (!activeRoom.isSolved() && activeRoom.getAttempts() >= currentPlayer.getMaxAttempts()) {
+            triggerLoopFailed();
+        }
     }
 
     private void triggerWin() {
         countdownTimer.stop();
         gameController.overrideLoop();
         currentState = GameState.WIN;
-        gameDisplay.showWin(currentPlayer, countdownTimer.getSecondsRemaining(), gameController.getMessage());
+        gameDisplay.showWin(currentPlayer,countdownTimer.getSecondsRemaining(),gameController.getMessage());
         gameDisplay.setTimerText("ESCAPED!", GameWindow.COLOR_GREEN);
         gameWindow.setInputEnabled(false);
         gameWindow.setClueHintVisible(false);
